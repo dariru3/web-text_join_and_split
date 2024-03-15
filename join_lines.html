@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Join Lines Text Processor v0.3</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px; /* Adjust based on your preference */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        textarea, select, .feedback {
+            width: 100%; /* Make textarea and select take the full width of their container */
+            margin: 10px 0; /* Margin for spacing */
+        }
+        textarea {
+            height: 15vh; /* Adjust the height of the textarea */
+            resize: vertical; /* Allow vertical resizing */
+        }
+        button, select {
+            padding: 10px;
+        }
+        select {
+            cursor: pointer;
+        }
+        .feedback {
+            color: green;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Join Lines Text Processor v0.3</h2>
+    <p>Combines broken lines into text, then splits the text by sentences using a period (.), 句点 (。)
+        or a special character (▼). Output copies to clipboard.</p>
+
+    <!-- Dropdown menu for choosing the delimiter -->
+    <select id="delimiterSelect">
+        <option value=".">Split by period (.)</option>
+        <option value="。">Split by 句点 (。)</option>
+    </select>
+
+    <textarea id="inputText" placeholder="Paste your text here..."></textarea>
+    <button id="processButton">Process Text</button>
+    <textarea id="outputText" placeholder="Processed text will appear here..."></textarea>
+    <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+    document.getElementById('processButton').addEventListener('click', function() {
+        let text = document.getElementById('inputText').value;
+        // Get the selected delimiter from the dropdown
+        let delimiter = document.getElementById('delimiterSelect').value;
+
+        text = text.replace(/\r\n/g, ' ').replace(/\n/g, ' ');
+        text = text.replace(/▼/g, '\n');
+        // Use the selected delimiter for splitting text
+        text = text.replace(new RegExp(`\\${delimiter}`, 'g'), `${delimiter}\n`);
+        
+        let lines = text.split('\n').map(line => line.trim()).filter(line => line);
+        let processedText = lines.join('\n');
+        
+        const outputText = document.getElementById('outputText');
+        outputText.value = processedText;
+
+        // Use the Clipboard API to copy the processed text to the clipboard
+        navigator.clipboard.writeText(processedText).then(() => {
+            // Provide user feedback on successful copy
+            document.getElementById('feedback').textContent = 'Output text copied to clipboard!';
+            setTimeout(() => document.getElementById('feedback').textContent = '', 3000); // Clear feedback after 3 seconds
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+
+        outputText.focus();
+        outputText.select();
+    });
+</script>
+
+</body>
+</html>
