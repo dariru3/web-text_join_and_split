@@ -66,14 +66,14 @@
 
     <div class="container">
         <h2>Join Lines Text Processor v0.41</h2>
-        <p>Combines broken lines into text, then splits the text by sentences, lists, and a special character (▼).
-            Select "Other" to input a custom delimiter. Output copies to clipboard. </p>
+        <p>Combines broken lines into text, then splits the text by sentences or lists and a special character (▼). Select "Other" to input a custom delimiter. Output copies to clipboard. </p>
 
         <select id="delimiterSelect" onchange="toggleCustomDelimiterInput()">
             <option value=".">Split by period (.)</option>
             <option value="。">Split by 句点 (。)</option>
             <option value="•">List by 黒小丸 (•)</option>
             <option value="●">List by 黒丸 (●)</option>
+            <option value="numbered">Numbered List</option>
             <option value="other">Other</option>
         </select>
         <input type="text" id="customDelimiter" class="customDelimiter" placeholder="Enter custom delimiter">
@@ -92,7 +92,9 @@
             text = text.replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/▼/g, '\n');
 
             // Check if the selected delimiter is a bullet point and call the appropriate function
-            if (delimiter === '•' || delimiter === '●') {
+            if (delimiter === 'numbered') {
+                processedText = handleNumberedLists(text)
+            } else if (delimiter === '•' || delimiter === '●') {
                 processedText = handleBulletPoints(text, delimiter);
             } else {
                 // For other delimiters, use the selected delimiter for splitting text
@@ -128,6 +130,30 @@
             );
             return processedParts.join('\n').trim();
         }
+
+        function handleNumberedLists(text) {
+            // Pattern to detect numbered list items, considering normalization has merged lines
+            // This pattern looks for digits followed by a period and optionally a space, at the start or after a space
+            const pattern = /(\d+\.\s)/g;
+
+            // Replace the found patterns with the same pattern prefixed by a newline, except for the very first match
+            // This ensures we do not prepend a newline at the very start of the text if it starts with a list item
+            let isFirstItem = true;
+            text = text.replace(pattern, (match) => {
+                if (isFirstItem) {
+                    isFirstItem = false;
+                    return match; // Do not modify the first match
+                }
+                return '\n' + match; // Prefix all subsequent matches with a newline
+            });
+
+            // Now, split the text into lines for each list item
+            let processedText = text.split('\n').map(line => line.trim()).filter(line => line).join('\n');
+
+            return processedText;
+        }
+
+
     </script>
 </body>
 
