@@ -85,6 +85,13 @@
     </div>
 
     <script>
+        // Call toggleCustomDelimiterInput on page load in case 'Other' is already selected
+        // and attach it to the select element's onchange event right away
+        window.onload = function() {
+            toggleCustomDelimiterInput();
+            document.getElementById('delimiterSelect').addEventListener('change', toggleCustomDelimiterInput);
+        };
+
         document.getElementById('processButton').addEventListener('click', function () {
             let text = document.getElementById('inputText').value;
             let delimiter = document.getElementById('delimiterSelect').value;
@@ -119,6 +126,21 @@
             outputText.focus();
             outputText.select();
         });
+
+        function toggleCustomDelimiterInput() {
+            // Get the select dropdown and the custom delimiter input field
+            var delimiterSelect = document.getElementById('delimiterSelect');
+            var customDelimiterField = document.getElementById('customDelimiter');
+            
+            // Check if the selected value is 'other'
+            if (delimiterSelect.value === 'other') {
+                // If 'other' is selected, show the custom delimiter input field
+                customDelimiterField.style.display = 'block';
+            } else {
+                // Otherwise, hide the custom delimiter input field
+                customDelimiterField.style.display = 'none';
+            }
+        }
 
         function handleBulletPoints(text, delimiter) {
             // Split the text at each bullet point, preserving the bullet
