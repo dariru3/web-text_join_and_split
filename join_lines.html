@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Join Lines Text Processor v0.5</title>
+    <title>Join Lines Text Processor v0.6</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,7 +65,7 @@
 <body>
 
     <div class="container">
-        <h2>Join Lines Text Processor v0.5</h2>
+        <h2>Join Lines Text Processor v0.6</h2>
         <p>Combines broken lines into text, then splits the text by sentences or lists and a special character (▼). Select "Other" to input a custom delimiter. Output copies to clipboard. </p>
 
         <select id="delimiterSelect" onchange="toggleCustomDelimiterInput()">
@@ -96,7 +96,12 @@
             let text = document.getElementById('inputText').value;
             let delimiter = document.getElementById('delimiterSelect').value;
 
-            text = text.replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/▼/g, '\n');
+            if (delimiter === '。') {
+                text = text.replace(/\r\n/g, '').replace(/\n/g, '')
+            } else {
+                text = text.replace(/\r\n/g, ' ').replace(/\n/g, ' ')
+            }
+            text = text.replace(/▼/g, '\n');
 
             // Check if the selected delimiter is a bullet point and call the appropriate function
             if (delimiter === 'numbered') {
