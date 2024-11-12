@@ -7,11 +7,27 @@ window.onload = function () {
     .addEventListener("change", toggleCustomDelimiterInput);
 };
 
+function toggleCustomDelimiterInput() {
+  // Get the select dropdown and the custom delimiter input field
+  var delimiterSelect = document.getElementById("delimiterSelect");
+  var customDelimiterField = document.getElementById("customDelimiter");
+
+  // Check if the selected value is 'other'
+  if (delimiterSelect.value === "other") {
+    // If 'other' is selected, show the custom delimiter input field
+    customDelimiterField.style.display = "block";
+  } else {
+    // Otherwise, hide the custom delimiter input field
+    customDelimiterField.style.display = "none";
+  }
+}
+
 document.getElementById("processButton").addEventListener("click", function () {
   let text = document.getElementById("inputText").value;
   let delimiter = document.getElementById("delimiterSelect").value;
-  text = adjustLines(text, delimiter); // change lines to sentences
-  const processedText = adjustByDelimiter(text, delimiter); // adjust lists and custom delimiter
+
+  text = adjustLines(text, delimiter); // combine lines to sentences
+  const processedText = adjustByDelimiter(text, delimiter); // adjust for lists and a custom delimiter
 
   const outputText = document.getElementById("outputText");
   outputText.value = processedText;
@@ -43,29 +59,11 @@ function adjustByDelimiter(text, delimiter) {
       delimiter = document.getElementById("customDelimiter").value;
     }
     text = text.replace(new RegExp(`\\${delimiter}`, "g"), `${delimiter}\n`);
-    let lines = text
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line);
-    processedText = lines.join("\n");
+
+    processedText = cleanLines(text);
   }
 
   return processedText;
-}
-
-function toggleCustomDelimiterInput() {
-  // Get the select dropdown and the custom delimiter input field
-  var delimiterSelect = document.getElementById("delimiterSelect");
-  var customDelimiterField = document.getElementById("customDelimiter");
-
-  // Check if the selected value is 'other'
-  if (delimiterSelect.value === "other") {
-    // If 'other' is selected, show the custom delimiter input field
-    customDelimiterField.style.display = "block";
-  } else {
-    // Otherwise, hide the custom delimiter input field
-    customDelimiterField.style.display = "none";
-  }
 }
 
 function handleBulletPoints(text, delimiter) {
@@ -95,14 +93,15 @@ function handleNumberedLists(text) {
     return "\n" + match; // Prefix all subsequent matches with a newline
   });
 
-  // Now, split the text into lines for each list item
-  let processedText = text
+  return cleanLines(text);
+}
+
+function cleanLines(text) {
+  const lines = text
     .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line)
-    .join("\n");
-
-  return processedText;
+    .filter((line) => line);
+  return lines.join("\n");
 }
 
 function copyToClipboard(processedText) {
