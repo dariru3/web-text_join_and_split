@@ -1,187 +1,105 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Join Lines Text Processor v0.6</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            /* Adjust based on your preference */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        textarea,
-        select,
-        input,
-        .feedback {
-            width: 100%;
-            /* Align width of input, select, and textarea */
-            margin: 10px 0;
-            /* Uniform margin for spacing */
-            padding: 10px;
-            /* Padding to match select and button */
-            box-sizing: border-box;
-            /* Include padding and border in the element's total width and height */
-        }
-
-        textarea {
-            height: 15vh;
-            /* Adjust the height of the textarea */
-            resize: vertical;
-            /* Allow vertical resizing */
-        }
-
-        button {
-            cursor: pointer;
-            padding: 10px;
-            margin: 5px 0;
-            /* Margin for spacing */
-        }
-
-        .feedback {
-            color: green;
-            height: 20px;
-        }
-
-        .customDelimiter {
-            display: none;
-            /* Hide the custom delimiter input by default */
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="container">
-        <h2>Join Lines Text Processor v0.6</h2>
-        <p>Combines broken lines into text, then splits the text by sentences or lists and a special character (▼). Select "Other" to input a custom delimiter. Output copies to clipboard. </p>
-
-        <select id="delimiterSelect" onchange="toggleCustomDelimiterInput()">
-            <option value=".">Split by period (.)</option>
-            <option value="。">Split by 句点 (。)</option>
-            <option value="•">List by 黒小丸 (•)</option>
-            <option value="●">List by 黒丸 (●)</option>
-            <option value="numbered">Numbered List</option>
-            <option value="other">Other</option>
-        </select>
-        <input type="text" id="customDelimiter" class="customDelimiter" placeholder="Enter custom delimiter">
-
-        <textarea id="inputText" placeholder="Paste your text here..."></textarea>
-        <button id="processButton">Process Text</button>
-        <textarea id="outputText" placeholder="Processed text will appear here..."></textarea>
-        <div class="feedback" id="feedback"></div>
-    </div>
-
-    <script>
-        // Call toggleCustomDelimiterInput on page load in case 'Other' is already selected
-        // and attach it to the select element's onchange event right away
-        window.onload = function() {
-            toggleCustomDelimiterInput();
-            document.getElementById('delimiterSelect').addEventListener('change', toggleCustomDelimiterInput);
-        };
-
-        document.getElementById('processButton').addEventListener('click', function () {
-            let text = document.getElementById('inputText').value;
-            let delimiter = document.getElementById('delimiterSelect').value;
-
-            if (delimiter === '。') {
-                text = text.replace(/\r\n/g, '').replace(/\n/g, '')
-            } else {
-                text = text.replace(/\r\n/g, ' ').replace(/\n/g, ' ')
-            }
-            text = text.replace(/▼/g, '\n');
-
-            // Check if the selected delimiter is a bullet point and call the appropriate function
-            if (delimiter === 'numbered') {
-                processedText = handleNumberedLists(text)
-            } else if (delimiter === '•' || delimiter === '●') {
-                processedText = handleBulletPoints(text, delimiter);
-            } else {
-                // For other delimiters, use the selected delimiter for splitting text
-                if (delimiter === 'other') {
-                    delimiter = document.getElementById('customDelimiter').value;
-                }
-                text = text.replace(new RegExp(`\\${delimiter}`, 'g'), `${delimiter}\n`);
-                let lines = text.split('\n').map(line => line.trim()).filter(line => line);
-                processedText = lines.join('\n');
+    <head>
+        <meta charset="UTF-8" />
+        <title>Join Lines Text Processor</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
 
-            const outputText = document.getElementById('outputText');
-            outputText.value = processedText;
-
-            navigator.clipboard.writeText(processedText).then(() => {
-                document.getElementById('feedback').textContent = 'Output text copied to clipboard!';
-                setTimeout(() => document.getElementById('feedback').textContent = '', 3000);
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-            });
-
-            outputText.focus();
-            outputText.select();
-        });
-
-        function toggleCustomDelimiterInput() {
-            // Get the select dropdown and the custom delimiter input field
-            var delimiterSelect = document.getElementById('delimiterSelect');
-            var customDelimiterField = document.getElementById('customDelimiter');
-            
-            // Check if the selected value is 'other'
-            if (delimiterSelect.value === 'other') {
-                // If 'other' is selected, show the custom delimiter input field
-                customDelimiterField.style.display = 'block';
-            } else {
-                // Otherwise, hide the custom delimiter input field
-                customDelimiterField.style.display = 'none';
+            .container {
+                width: 100%;
+                max-width: 600px;
+                /* Adjust based on your preference */
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
-        }
 
-        function handleBulletPoints(text, delimiter) {
-            // Split the text at each bullet point, preserving the bullet
-            const parts = text.split(delimiter);
-            // Reconstruct the text, ensuring each part starts with the bullet point
-            // Skip the first part if it doesn't start with a bullet point
-            const processedParts = parts.map((part, index) =>
-                index === 0 ? part.trim() : `${delimiter} ${part.trim()}`
-            );
-            return processedParts.join('\n').trim();
-        }
+            textarea,
+            select,
+            input,
+            .feedback {
+                width: 100%;
+                /* Align width of input, select, and textarea */
+                margin: 10px 0;
+                /* Uniform margin for spacing */
+                padding: 10px;
+                /* Padding to match select and button */
+                box-sizing: border-box;
+                /* Include padding and border in the element's total width and height */
+            }
 
-        function handleNumberedLists(text) {
-            // Pattern to detect numbered list items, considering normalization has merged lines
-            // This pattern looks for digits followed by a period and optionally a space, at the start or after a space
-            const pattern = /(\d+\.\s)/g;
+            textarea {
+                height: 15vh;
+                /* Adjust the height of the textarea */
+                resize: vertical;
+                /* Allow vertical resizing */
+            }
 
-            // Replace the found patterns with the same pattern prefixed by a newline, except for the very first match
-            // This ensures we do not prepend a newline at the very start of the text if it starts with a list item
-            let isFirstItem = true;
-            text = text.replace(pattern, (match) => {
-                if (isFirstItem) {
-                    isFirstItem = false;
-                    return match; // Do not modify the first match
-                }
-                return '\n' + match; // Prefix all subsequent matches with a newline
-            });
+            button {
+                cursor: pointer;
+                padding: 10px;
+                margin: 5px 0;
+                /* Margin for spacing */
+            }
 
-            // Now, split the text into lines for each list item
-            let processedText = text.split('\n').map(line => line.trim()).filter(line => line).join('\n');
+            .feedback {
+                color: green;
+                height: 20px;
+            }
 
-            return processedText;
-        }
+            .customDelimiter {
+                display: none;
+                /* Hide the custom delimiter input by default */
+            }
+        </style>
+    </head>
 
+    <body>
+        <div class="container">
+            <h2>Join Lines Text Processor v0.6.1</h2>
+            <p>
+                Combines broken lines into text, then splits the text by
+                sentences or lists and a special character (▼). Select "Other"
+                to input a custom delimiter. Output copies to clipboard.
+            </p>
 
-    </script>
-</body>
+            <select
+                id="delimiterSelect"
+                onchange="toggleCustomDelimiterInput()"
+            >
+                <option value=".">Split by period (.)</option>
+                <option value="。">Split by 句点 (。)</option>
+                <option value="•">List by 黒小丸 (•)</option>
+                <option value="●">List by 黒丸 (●)</option>
+                <option value="numbered">Numbered List</option>
+                <option value="other">Other</option>
+            </select>
+            <input
+                type="text"
+                id="customDelimiter"
+                class="customDelimiter"
+                placeholder="Enter custom delimiter"
+            />
 
+            <textarea
+                id="inputText"
+                placeholder="Paste your text here..."
+            ></textarea>
+            <button id="processButton">Process Text</button>
+            <textarea
+                id="outputText"
+                placeholder="Processed text will appear here..."
+            ></textarea>
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
 </html>
